@@ -59,6 +59,17 @@ class DenylistRule:
         self.regex = re.compile(pattern, re.IGNORECASE)
 
 
+class AllowlistPattern:
+    """A single allowlist pattern for legitimate code constructs."""
+
+    __slots__ = ("pattern", "regex", "description")
+
+    def __init__(self, pattern: str, description: str) -> None:
+        self.pattern = pattern
+        self.description = description
+        self.regex = re.compile(pattern, re.IGNORECASE)
+
+
 class Violation:
     """A detected policy violation with location and match details."""
 
@@ -80,7 +91,13 @@ class Violation:
 class Config:
     """Scanner configuration with denylist rules and file filters."""
 
-    __slots__ = ("denylist", "extensions_to_scan", "ignore_dirs", "allowlist_files")
+    __slots__ = (
+        "denylist",
+        "extensions_to_scan",
+        "ignore_dirs",
+        "allowlist_files",
+        "allowlist_patterns",
+    )
 
     def __init__(
         self,
@@ -88,11 +105,13 @@ class Config:
         extensions_to_scan: set[str],
         ignore_dirs: set[str],
         allowlist_files: set[str],
+        allowlist_patterns: list[AllowlistPattern],
     ) -> None:
         self.denylist = denylist
         self.extensions_to_scan = extensions_to_scan
         self.ignore_dirs = ignore_dirs
         self.allowlist_files = allowlist_files
+        self.allowlist_patterns = allowlist_patterns
 
 
 def load_config(config_path: Path) -> Config:  # pylint: disable=too-many-locals
@@ -176,12 +195,57 @@ def load_config(config_path: Path) -> Config:  # pylint: disable=too-many-locals
         sys.exit(EXIT_ERROR)
     allowlist_files = {str(f) for f in allowlist_files_raw}
 
-    return Config(denylist, extensions_to_scan, ignore_dirs, allowlist_files)
+    allowlist_patterns_raw = allowlist_raw.get("patterns", [])
+    if not isinstance(allowlist_patterns_raw, list):
+        print("ERROR: 'allowlist.patterns' must be a list", file=sys.stderr)
+        sys.exit(EXIT_ERROR)
+
+    allowlist_patterns: list[AllowlistPattern] = []
+    for idx, entry in enumerate(allowlist_patterns_raw):
+        if not isinstance(entry, dict):
+            print(
+                f"ERROR: Allowlist pattern entry {idx} must be a mapping",
+                file=sys.stderr,
+            )
+            sys.exit(EXIT_ERROR)
+
+        pattern = entry.get("pattern")
+        if not isinstance(pattern, str):
+            print(
+                f"ERROR: Allowlist pattern entry {idx} missing 'pattern' string",
+                file=sys.stderr,
+            )
+            sys.exit(EXIT_ERROR)
+
+        description = entry.get("description", "Unnamed allowlist pattern")
+
+        try:
+            allowlist_pattern = AllowlistPattern(pattern, str(description))
+            allowlist_patterns.append(allowlist_pattern)
+        except re.error as e:
+            print(
+                f"ERROR: Invalid regex in allowlist pattern entry {idx}: {e}",
+                file=sys.stderr,
+            )
+            sys.exit(EXIT_ERROR)
+
+    return Config(
+        denylist, extensions_to_scan, ignore_dirs, allowlist_files, allowlist_patterns
+    )
 
 
 def normalize_text(text: str) -> str:
     """Apply NFKC normalization and lowercase for consistent matching."""
     return unicodedata.normalize("NFKC", text).lower()
+
+
+def _is_allowlisted(line: str, allowlist_patterns: list[AllowlistPattern]) -> bool:
+    """Check if line contains an allowlisted pattern."""
+    normalized_line = normalize_text(line)
+    for pattern in allowlist_patterns:
+        if pattern.regex.search(normalized_line):
+            return True
+    return False
 
 
 def scan_line(
@@ -190,6 +254,7 @@ def scan_line(
     file_path: str,
     filename: str,
     rules: list[DenylistRule],
+    allowlist_patterns: list[AllowlistPattern],
 ) -> list[Violation]:
     """Scan a single line for violations, reporting all matches."""
     violations: list[Violation] = []
@@ -203,6 +268,9 @@ def scan_line(
             original_start = match.start()
             original_end = match.end()
             matched_text = line[original_start:original_end]
+
+            if _is_allowlisted(line, allowlist_patterns):
+                continue
 
             violations.append(
                 Violation(
@@ -220,6 +288,7 @@ def scan_file(
     file_path: Path,
     relative_path: str,
     rules: list[DenylistRule],
+    allowlist_patterns: list[AllowlistPattern],
 ) -> list[Violation]:
     """Scan a single file for violations."""
     violations: list[Violation] = []
@@ -234,6 +303,7 @@ def scan_file(
                     relative_path,
                     filename,
                     rules,
+                    allowlist_patterns,
                 )
                 violations.extend(line_violations)
     except UnicodeDecodeError:
@@ -310,7 +380,9 @@ def walk_directory(
             if relative_path in config.allowlist_files:
                 continue
 
-            file_violations = scan_file(file_path, relative_path, config.denylist)
+            file_violations = scan_file(
+                file_path, relative_path, config.denylist, config.allowlist_patterns
+            )
             violations.extend(file_violations)
 
     return violations

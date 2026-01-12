@@ -63,6 +63,7 @@ extensions_to_scan:
   - .md
   - .sql
   - .yaml
+  - .yml
   - .json
   - .toml
 
