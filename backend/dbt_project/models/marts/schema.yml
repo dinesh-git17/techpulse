@@ -1,6 +1,120 @@
 version: 2
 
 models:
+  - name: util_month_spine
+    description: >
+      Calendar spine table generating one row per month from 2011-06-01 (first
+      HN "Who is Hiring" thread) through the current month. Used for time-series
+      densification to ensure downstream aggregations have no gaps.
+    columns:
+      - name: month
+        description: >
+          First day of each month (YYYY-MM-01). Truncated to month boundary.
+          Universal partition key for time-series joins.
+        data_type: date
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_technologies
+    description: >
+      Technology dimension table containing the canonical reference for all
+      tracked technologies. Derived from tech_taxonomy seed. Serves as the
+      authoritative source for tech_key to tech_name mapping.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: tech_key
+        description: >
+          Canonical technology identifier (lowercase, underscores). Primary key.
+          Foreign key reference for all fact tables.
+        data_type: varchar
+        tests:
+          - unique
+          - not_null
+
+      - name: tech_name
+        description: >
+          Human-readable technology name for UI display (e.g., "React", "Python").
+          Derived from tech_taxonomy.display_name.
+        data_type: varchar
+        tests:
+          - not_null
+
+  - name: mart_monthly_trends
+    description: >
+      Gold layer mart providing monthly technology trend metrics. One row per
+      technology per month, fully densified (no gaps). Serves as the stable
+      Data API for downstream consumers (FastAPI, Frontend, Notebooks).
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: month
+        description: >
+          First day of the month (YYYY-MM-01). Partition key for time-series
+          queries. Derived from date_trunc('month', posted_at).
+        data_type: date
+        tests:
+          - not_null
+
+      - name: tech_key
+        description: >
+          Canonical technology identifier. Foreign key to dim_technologies.
+          Combined with month forms the composite primary key.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: tech_name
+        description: >
+          Human-readable technology name for display. Denormalized from
+          dim_technologies for zero-join queries.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: mention_count
+        description: >
+          Number of unique job postings mentioning this technology in the month.
+          Deduplicated by (job_id, tech_key). Returns 0 for sparse months where
+          no jobs mentioned the technology.
+        data_type: bigint
+        tests:
+          - not_null
+
+      - name: total_jobs
+        description: >
+          Total unique job postings in the month across all technologies.
+          Denominator for pct_share calculation. Not filtered by tech mentions.
+        data_type: bigint
+        tests:
+          - not_null
+
+      - name: pct_share
+        description: >
+          Market share percentage: mention_count / total_jobs. Represents the
+          fraction of all job postings that mention this technology. Returns 0.0
+          when total_jobs is 0.
+        data_type: double
+        tests:
+          - not_null
+
+      - name: mom_growth_pct
+        description: >
+          Month-over-Month growth percentage. Formula:
+          ((current_pct_share - prev_month_pct_share) / prev_month_pct_share) * 100.
+          Returns NULL when previous month share is 0 or missing (first month).
+        data_type: double
+
+      - name: yoy_growth_pct
+        description: >
+          Year-over-Year growth percentage. Formula:
+          ((current_pct_share - prev_year_pct_share) / prev_year_pct_share) * 100.
+          Returns NULL when year-ago share is 0 or missing (first 12 months).
+        data_type: double
+
   - name: job_technology_bridge
     description: >
       Bridge table connecting job postings to technology entities via regex
