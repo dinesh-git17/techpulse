@@ -37,6 +37,27 @@ MAX_RETRY_ATTEMPTS = 5
 RATE_LIMIT_DEFAULT_WAIT = 60.0
 
 
+def _parse_retry_after(header_value: str | None) -> float:
+    """Parse Retry-After header value to seconds.
+
+    The Retry-After header can be either a number of seconds or an HTTP-date.
+    This function attempts to parse seconds first, falling back to the default
+    wait time if parsing fails (including HTTP-date format).
+
+    Args:
+        header_value: The Retry-After header value, or None if not present.
+
+    Returns:
+        float: The number of seconds to wait before retrying.
+    """
+    if header_value is None:
+        return RATE_LIMIT_DEFAULT_WAIT
+    try:
+        return float(header_value)
+    except ValueError:
+        return RATE_LIMIT_DEFAULT_WAIT
+
+
 class HackerNewsClient:
     """Synchronous client for the Hacker News Firebase API.
 
@@ -163,9 +184,7 @@ class HackerNewsClient:
 
             if response.status_code == 429:
                 retry_after = response.headers.get("Retry-After")
-                wait_time = (
-                    float(retry_after) if retry_after else RATE_LIMIT_DEFAULT_WAIT
-                )
+                wait_time = _parse_retry_after(retry_after)
                 self._log.warning(
                     "rate_limited",
                     url=url,

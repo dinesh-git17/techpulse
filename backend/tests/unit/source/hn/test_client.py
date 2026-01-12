@@ -9,7 +9,9 @@ from techpulse.source.hn.client import (
     DEFAULT_BASE_URL,
     DEFAULT_CONNECT_TIMEOUT,
     DEFAULT_READ_TIMEOUT,
+    RATE_LIMIT_DEFAULT_WAIT,
     HackerNewsClient,
+    _parse_retry_after,
 )
 from techpulse.source.hn.errors import (
     HackerNewsAPIError,
@@ -44,6 +46,37 @@ class TestClientInitialization:
         """Verify trailing slash is removed from base URL."""
         client = HackerNewsClient(base_url="https://api.com/v1/")
         assert client.base_url == "https://api.com/v1"
+
+
+class TestParseRetryAfter:
+    """Test suite for _parse_retry_after helper function."""
+
+    def test_numeric_seconds(self) -> None:
+        """Verify numeric string is parsed as seconds."""
+        assert _parse_retry_after("120") == 120.0
+
+    def test_numeric_float_seconds(self) -> None:
+        """Verify float string is parsed correctly."""
+        assert _parse_retry_after("30.5") == 30.5
+
+    def test_none_returns_default(self) -> None:
+        """Verify None returns default wait time."""
+        assert _parse_retry_after(None) == RATE_LIMIT_DEFAULT_WAIT
+
+    def test_http_date_returns_default(self) -> None:
+        """Verify HTTP-date format falls back to default."""
+        assert (
+            _parse_retry_after("Wed, 21 Oct 2015 07:28:00 GMT")
+            == RATE_LIMIT_DEFAULT_WAIT
+        )
+
+    def test_invalid_string_returns_default(self) -> None:
+        """Verify invalid string falls back to default."""
+        assert _parse_retry_after("invalid") == RATE_LIMIT_DEFAULT_WAIT
+
+    def test_empty_string_returns_default(self) -> None:
+        """Verify empty string falls back to default."""
+        assert _parse_retry_after("") == RATE_LIMIT_DEFAULT_WAIT
 
 
 class TestContextManager:
