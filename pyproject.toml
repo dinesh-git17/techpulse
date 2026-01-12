@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "techpulse"
 version = "0.1.0"
@@ -57,3 +61,9 @@ ignore_missing_imports = false
 [[tool.mypy.overrides]]
 module = ["dagster.*", "dbt.*", "duckdb.*"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests", "tools/compliance/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

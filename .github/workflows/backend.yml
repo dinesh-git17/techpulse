@@ -133,6 +133,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Install package
+        run: uv pip install -e .
+
       - name: Run tests with coverage
         run: uv run pytest --cov=techpulse --cov-fail-under=80
 
@@ -192,4 +195,4 @@ jobs:
         run: uv sync --frozen
 
       - name: Parse dbt models
-        run: uv run dbt parse --project-dir backend/dbt_project
+        run: uv run dbt parse --project-dir backend/dbt_project --profiles-dir backend/dbt_project
