@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: job_technology_bridge
+    description: >
+      Bridge table connecting job postings to technology entities via regex
+      pattern matching. Each row represents a unique job-technology pair where
+      the technology's regex pattern matched the job's full_text content.
+      Serves as the foundation for downstream trend aggregations.
+    columns:
+      - name: job_id
+        description: >
+          Foreign key to stg_job_postings. Identifies the job posting that
+          matched the technology pattern.
+        data_type: integer
+        tests:
+          - not_null
+
+      - name: tech_key
+        description: >
+          Foreign key to tech_taxonomy. The canonical identifier for the
+          matched technology entity.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: tech_category
+        description: >
+          Denormalized technology category from tech_taxonomy. Enables
+          efficient filtering without joining back to the seed table.
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Language', 'Framework', 'Database', 'Cloud', 'DevOps', 'Tool']
+
+      - name: job_posted_at
+        description: >
+          Denormalized posting timestamp from stg_job_postings. Enables
+          time-series aggregations without joining back to the staging table.
+        data_type: timestamp with time zone
+        tests:
+          - not_null
+
+      - name: matched_at
+        description: >
+          Timestamp when the regex match was computed. Used for lineage
+          tracking and debugging match freshness.
+        data_type: timestamp with time zone
+        tests:
+          - not_null

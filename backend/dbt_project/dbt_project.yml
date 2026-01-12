@@ -11,3 +11,12 @@ snapshot-paths: ["snapshots"]
 clean-targets:
   - "target"
   - "dbt_packages"
+
+seeds:
+  techpulse:
+    tech_taxonomy:
+      +column_types:
+        tech_key: varchar
+        display_name: varchar
+        category: varchar
+        regex_pattern: varchar

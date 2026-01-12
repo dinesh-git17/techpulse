@@ -39,6 +39,15 @@ models:
         tests:
           - not_null
 
+      - name: full_text
+        description: >
+          Concatenated searchable text for entity resolution. Contains all
+          text fields suitable for regex pattern matching. Guaranteed non-null
+          via COALESCE to empty string.
+        data_type: varchar
+        tests:
+          - not_null
+
       - name: parent_id
         description: >
           Hacker News item ID of the parent thread. For job postings,

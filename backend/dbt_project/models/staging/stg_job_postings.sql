@@ -34,6 +34,7 @@ select
     author,
     posted_at,
     text,
+    coalesce(text, '') as full_text,
     parent_id,
     load_id,
     ingested_at
