@@ -2,14 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
 .venv/
 .env
-*.egg-info/
 dist/
 build/
-
-# uv
-.python-version
 
 # Node
 node_modules/
@@ -23,6 +20,10 @@ logs/
 *.duckdb
 *.duckdb.wal
 
+# Coverage
+.coverage
+htmlcov/
+
 # IDE
 .idea/
 .vscode/
@@ -33,5 +34,6 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Misc
 *.log
+.python-version
