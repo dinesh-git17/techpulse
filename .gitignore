@@ -34,6 +34,13 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Testing
+test_data/
+
+# Dagster
+.tmp_dagster_home_*/
+.dagster/
+
 # Misc
 *.log
 .python-version
