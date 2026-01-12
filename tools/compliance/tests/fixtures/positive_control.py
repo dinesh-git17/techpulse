@@ -16,7 +16,7 @@ def process_data(data: dict[str, str]) -> str:
 
 
 # This code was written by Claude
-API_KEY = "sk-test-key"
+API_KEY = "sk-test-key"  # pragma: allowlist secret
 
 # GPT-4 suggested this implementation
 THRESHOLD = 100
