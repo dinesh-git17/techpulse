@@ -1,0 +1,188 @@
+name: PR Summary
+
+on:
+  workflow_run:
+    workflows: [Compliance, Backend, Frontend]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  summarize:
+    name: Post Summary
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+
+    steps:
+      - name: Get PR number
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: { pull_requests } } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.payload.workflow_run.head_sha
+            });
+
+            if (pull_requests.length === 0) {
+              core.setOutput('found', 'false');
+              return;
+            }
+
+            core.setOutput('found', 'true');
+            core.setOutput('number', pull_requests[0].number);
+
+      - name: Check all workflow statuses
+        if: steps.pr.outputs.found == 'true'
+        id: status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            const headSha = context.payload.workflow_run.head_sha;
+
+            const expectedWorkflows = ['Compliance', 'Backend', 'Frontend'];
+
+            const { data: workflowRuns } = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head_sha: headSha,
+              per_page: 100
+            });
+
+            const workflowStatuses = {};
+            let allCompleted = true;
+            let pendingWorkflows = [];
+
+            for (const name of expectedWorkflows) {
+              const runs = workflowRuns.workflow_runs.filter(r => r.name === name);
+
+              if (runs.length === 0) {
+                workflowStatuses[name] = { status: 'skipped', conclusion: null, jobs: [] };
+                continue;
+              }
+
+              const latestRun = runs.sort((a, b) =>
+                new Date(b.created_at) - new Date(a.created_at)
+              )[0];
+
+              if (latestRun.status !== 'completed') {
+                allCompleted = false;
+                pendingWorkflows.push(name);
+                workflowStatuses[name] = { status: 'in_progress', conclusion: null, jobs: [] };
+                continue;
+              }
+
+              const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: latestRun.id
+              });
+
+              const failedJobs = jobs.jobs
+                .filter(j => j.conclusion === 'failure')
+                .map(j => j.name);
+
+              workflowStatuses[name] = {
+                status: 'completed',
+                conclusion: latestRun.conclusion,
+                jobs: failedJobs,
+                url: latestRun.html_url
+              };
+            }
+
+            core.setOutput('all_completed', allCompleted.toString());
+            core.setOutput('statuses', JSON.stringify(workflowStatuses));
+            core.setOutput('pending', JSON.stringify(pendingWorkflows));
+
+      - name: Generate and post summary
+        if: steps.pr.outputs.found == 'true' && steps.status.outputs.all_completed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            const statuses = JSON.parse('${{ steps.status.outputs.statuses }}');
+
+            const workflowOrder = ['Compliance', 'Backend', 'Frontend'];
+
+            let allPassed = true;
+            let tableRows = [];
+
+            for (const name of workflowOrder) {
+              const status = statuses[name];
+              let statusIcon, details;
+
+              if (status.status === 'skipped') {
+                statusIcon = '➖';
+                details = 'No matching paths changed';
+              } else if (status.conclusion === 'success') {
+                statusIcon = '✅';
+                details = 'All checks passed';
+              } else if (status.conclusion === 'failure') {
+                statusIcon = '❌';
+                allPassed = false;
+                if (status.jobs.length > 0) {
+                  details = status.jobs.map(j => `\`${j}\``).join(', ');
+                } else {
+                  details = 'Workflow failed';
+                }
+              } else if (status.conclusion === 'cancelled') {
+                statusIcon = '⏹️';
+                details = 'Cancelled';
+              } else {
+                statusIcon = '❓';
+                details = status.conclusion || 'Unknown';
+              }
+
+              const nameLink = status.url ? `[${name}](${status.url})` : name;
+              tableRows.push(`| ${nameLink} | ${statusIcon} | ${details} |`);
+            }
+
+            const mergeStatus = allPassed
+              ? '🚀 **Mergeable**'
+              : '❌ **Cannot be merged**';
+
+            const summary = `## CI Summary
+
+            ${mergeStatus}
+
+            | Workflow | Status | Details |
+            |----------|--------|---------|
+            ${tableRows.join('\n')}
+
+            <sub>Last updated: ${new Date().toISOString()}</sub>`;
+
+            const commentMarker = '<!-- ci-summary-comment -->';
+            const body = `${commentMarker}\n${summary}`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+
+            const existingComment = comments.find(c =>
+              c.body.includes(commentMarker)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+              console.log(`Updated comment ${existingComment.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+              console.log('Created new summary comment');
+            }
