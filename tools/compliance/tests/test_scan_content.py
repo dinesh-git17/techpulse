@@ -15,7 +15,6 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from scan_content import (
-    AllowlistPattern,
     Config,
     DenylistRule,
     Violation,
