@@ -1,0 +1,97 @@
+denylist:
+  # Vendor Names
+  - pattern: "\\bopenai\\b"
+    description: "OpenAI Vendor Name"
+  - pattern: "\\banthropic\\b"
+    description: "Anthropic Vendor Name"
+  - pattern: "\\bmidjourney\\b"
+    description: "Midjourney Vendor Name"
+  - pattern: "\\bgoogle\\s+gemini\\b"
+    description: "Google Gemini Product Name"
+  - pattern: "\\bbard\\b"
+    description: "Google Bard Product Name"
+  - pattern: "\\bgithub\\s+copilot\\b"
+    description: "GitHub Copilot Product Name"
+  - pattern: "\\bcopilot\\b"
+    description: "Copilot Product Name"
+    exceptions: []
+
+  # Model Names
+  - pattern: "\\bgpt-3\\b"
+    description: "OpenAI GPT-3 Model"
+  - pattern: "\\bgpt-4\\b"
+    description: "OpenAI GPT-4 Model"
+  - pattern: "\\bgpt-4o\\b"
+    description: "OpenAI GPT-4o Model"
+  - pattern: "\\bchatgpt\\b"
+    description: "OpenAI ChatGPT Product"
+  - pattern: "\\bchat-gpt\\b"
+    description: "OpenAI ChatGPT Product (hyphenated)"
+  - pattern: "\\bclaude\\b"
+    description: "Anthropic Claude Model"
+  - pattern: "\\bllama\\b"
+    description: "Meta LLaMA Model"
+
+  # Attribution Phrases
+  - pattern: "\\bgenerated\\s+by\\s+ai\\b"
+    description: "AI Generation Attribution"
+  - pattern: "\\bai\\s+assisted\\b"
+    description: "AI Assistance Attribution"
+  - pattern: "\\bai-assisted\\b"
+    description: "AI Assistance Attribution (hyphenated)"
+  - pattern: "\\bauto-generated\\s+by\\b"
+    description: "Auto-generation Attribution"
+  - pattern: "\\bllm\\s+generated\\b"
+    description: "LLM Generation Attribution"
+  - pattern: "\\bllm-generated\\b"
+    description: "LLM Generation Attribution (hyphenated)"
+  - pattern: "\\bwritten\\s+by\\s+ai\\b"
+    description: "AI Authorship Attribution"
+  - pattern: "\\bcreated\\s+by\\s+ai\\b"
+    description: "AI Creation Attribution"
+  - pattern: "\\brefactored\\s+by\\s+ai\\b"
+    description: "AI Refactoring Attribution"
+  - pattern: "\\bgenerated\\s+using\\s+ai\\b"
+    description: "AI Tool Usage Attribution"
+
+extensions_to_scan:
+  - .py
+  - .js
+  - .ts
+  - .tsx
+  - .jsx
+  - .md
+  - .sql
+  - .yaml
+  - .yml
+  - .json
+  - .toml
+
+ignore_dirs:
+  - node_modules
+  - .venv
+  - .git
+  - dist
+  - build
+  - __pycache__
+  - .mypy_cache
+  - .pytest_cache
+  - .ruff_cache
+  - tools/compliance/tests
+
+allowlist:
+  # File-level allowlist for genuine exceptions
+  # Format: list of file paths (relative to repo root) that bypass scanning
+  files:
+    - CLAUDE.md
+    - tools/compliance/config.yaml
+    - tools/compliance/README.md
+  # Pattern-level allowlist for variable names and identifiers
+  # Format: list of regex patterns that represent legitimate code constructs
+  patterns:
+    - pattern: "openai_timeout"
+      description: "API client timeout configuration variable"
+    - pattern: "openai_api_key"
+      description: "Environment variable reference for API authentication"
+    - pattern: "anthropic_api_key"
+      description: "Environment variable reference for API authentication"
