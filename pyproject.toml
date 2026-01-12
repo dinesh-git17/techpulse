@@ -19,6 +19,41 @@ packages = ["backend/src/techpulse"]
 
 [dependency-groups]
 dev = [
+    "detect-secrets>=1.5.0",
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
     "pytest>=9.0.2",
+    "pytest-cov>=6.0.0",
     "ruff>=0.14.11",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "silent"
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = ["dagster.*", "dbt.*", "duckdb.*"]
+ignore_missing_imports = true
