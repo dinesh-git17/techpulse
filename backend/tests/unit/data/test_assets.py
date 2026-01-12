@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 from uuid import UUID
 
 import pytest
-from dagster import build_asset_context
+from dagster import Failure, build_asset_context
 
 from techpulse.data.assets import (
     BATCH_SIZE,
@@ -471,18 +471,22 @@ class TestWhoIsHiringThreadIdAsset:
 
                 assert result == 12345
 
-    def test_asset_returns_none_for_future_partition(self) -> None:
-        """Verify asset returns None for future partitions."""
+    def test_asset_raises_failure_for_future_partition(self) -> None:
+        """Verify asset raises Failure for future partitions."""
         with patch("techpulse.data.assets._is_future_partition", return_value=True):
             resource = HackerNewsClientResource()
             context = build_asset_context(partition_key="2099-01-01")
 
-            result = who_is_hiring_thread_id(context, resource)
+            with pytest.raises(Failure) as exc_info:
+                who_is_hiring_thread_id(context, resource)
 
-            assert result is None
+            assert exc_info.value.allow_retries is False
+            assert exc_info.value.metadata is not None
+            assert exc_info.value.metadata["skipped"].value is True
+            assert exc_info.value.metadata["skip_reason"].value == "Future partition"
 
-    def test_asset_returns_none_when_thread_not_found(self) -> None:
-        """Verify asset returns None when thread not found."""
+    def test_asset_raises_failure_when_thread_not_found(self) -> None:
+        """Verify asset raises Failure when thread not found."""
         mock_client = MagicMock(spec=HackerNewsClient)
         mock_user = self._create_mock_user([100])
         mock_item = self._create_mock_item(
@@ -503,9 +507,15 @@ class TestWhoIsHiringThreadIdAsset:
                 resource = HackerNewsClientResource()
                 context = build_asset_context(partition_key="2020-11-01")
 
-                result = who_is_hiring_thread_id(context, resource)
+                with pytest.raises(Failure) as exc_info:
+                    who_is_hiring_thread_id(context, resource)
 
-                assert result is None
+                assert exc_info.value.allow_retries is False
+                assert exc_info.value.metadata is not None
+                assert exc_info.value.metadata["skipped"].value is True
+                assert (
+                    exc_info.value.metadata["skip_reason"].value == "Thread not found"
+                )
 
     def test_asset_handles_apostrophe_title_format(self) -> None:
         """Verify asset handles Who's hiring format."""
@@ -929,13 +939,19 @@ class TestRawHnItemsAsset:
             dead=False,
         )
 
-    def test_skips_when_thread_id_is_none(self) -> None:
-        """Verify asset skips when upstream thread ID is None."""
+    def test_raises_failure_when_thread_id_is_none(self) -> None:
+        """Verify asset raises Failure when upstream thread ID is None."""
         hn_resource = HackerNewsClientResource()
         db_resource = DuckDBStoreResource()
         context = build_asset_context(partition_key="2099-01-01")
 
-        raw_hn_items(context, hn_resource, db_resource, None)
+        with pytest.raises(Failure) as exc_info:
+            raw_hn_items(context, hn_resource, db_resource, None)
+
+        assert exc_info.value.allow_retries is False
+        assert exc_info.value.metadata is not None
+        assert exc_info.value.metadata["skipped"].value is True
+        assert exc_info.value.metadata["skip_reason"].value == "No upstream thread ID"
 
     def test_ingests_items_from_thread(self) -> None:
         """Verify asset ingests items when thread ID is provided."""

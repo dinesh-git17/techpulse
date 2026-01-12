@@ -16,6 +16,7 @@ from dagster import (
     AssetExecutionContext,
     AssetIn,
     Backoff,
+    Failure,
     MonthlyPartitionsDefinition,
     RetryPolicy,
     asset,
@@ -227,7 +228,7 @@ def _find_thread_id_for_month(
 def who_is_hiring_thread_id(
     context: AssetExecutionContext,
     hn_client: HackerNewsClientResource,
-) -> Optional[int]:
+) -> int:
     """Find the Who is Hiring thread ID for the partition month.
 
     This asset queries the whoishiring user's submission history to locate
@@ -239,7 +240,12 @@ def who_is_hiring_thread_id(
         hn_client: The HackerNews API client resource.
 
     Returns:
-        Optional[int]: The thread ID if found, None if skipped.
+        int: The thread ID for the partition month.
+
+    Raises:
+        Failure: If the partition is in the future or thread is not found.
+            Raised with allow_retries=False to keep the partition in pending
+            state without triggering retry policy.
     """
     partition_key = context.partition_key
     log = logger.bind(
@@ -260,8 +266,17 @@ def who_is_hiring_thread_id(
             f"Thread for {month_name} {target_year} does not exist yet."
         )
         log.info("skipping_future_partition", reason=skip_message)
-        context.log.info(skip_message)
-        return None
+        raise Failure(
+            description=skip_message,
+            metadata={
+                "skipped": True,
+                "skip_reason": "Future partition",
+                "partition_key": partition_key,
+                "target_year": target_year,
+                "target_month": target_month,
+            },
+            allow_retries=False,
+        )
 
     with hn_client.get_client() as client:
         thread_id = _find_thread_id_for_month(
@@ -280,15 +295,18 @@ def who_is_hiring_thread_id(
             f"{MONTH_NAMES[target_month - 1]} {target_year}."
         )
         log.warning("thread_not_found_skip", reason=skip_message)
-        context.log.warning(skip_message)
-        context.add_output_metadata(
+        raise Failure(
+            description=skip_message,
             metadata={
                 "duration_seconds": duration_seconds,
                 "skipped": True,
                 "skip_reason": "Thread not found",
-            }
+                "partition_key": partition_key,
+                "target_year": target_year,
+                "target_month": target_month,
+            },
+            allow_retries=False,
         )
-        return None
 
     log.info(
         "asset_execution_complete",
@@ -508,16 +526,17 @@ def raw_hn_items(
             f"Skipping partition {partition_key}: upstream thread ID is None."
         )
         log.info("skipping_no_thread_id", reason=skip_message)
-        context.log.info(skip_message)
-        context.add_output_metadata(
+        raise Failure(
+            description=skip_message,
             metadata={
                 "item_count": 0,
                 "tombstone_count": 0,
                 "skipped": True,
                 "skip_reason": "No upstream thread ID",
-            }
+                "partition_key": partition_key,
+            },
+            allow_retries=False,
         )
-        return
 
     load_id = uuid4()
 
