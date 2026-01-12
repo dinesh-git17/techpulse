@@ -1,0 +1,15 @@
+# Global Fallback (Repository Owner)
+* @dinesh-git17
+
+# GitHub Internal Config
+/.github/ @dinesh-git17
+
+# Backend Service Domain
+/backend/ @dinesh-git17
+/backend/src/techpulse/data/ @dinesh-git17
+
+# Frontend Application Domain
+/frontend/ @dinesh-git17
+
+# Compliance & Tooling
+/tools/ @dinesh-git17

@@ -1,0 +1,48 @@
+name: Feature Request
+description: Propose a new feature or enhancement
+labels: ["type: feat", "status: triage"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the system does this affect?
+      options:
+        - Backend
+        - Frontend
+        - Infrastructure
+        - Data Pipeline
+    validations:
+      required: true
+
+  - type: textarea
+    id: cost-of-delay
+    attributes:
+      label: Cost of Delay
+      description: Why should this be prioritized now? What is the business impact of not doing this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: High-level implementation approach
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches were evaluated?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information (mockups, references, etc.)
+    validations:
+      required: false
