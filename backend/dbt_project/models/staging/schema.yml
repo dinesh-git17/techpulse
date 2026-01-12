@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: stg_job_postings
+    description: >
+      Staging model for Hacker News job posting comments. Extracts structured
+      fields from raw JSON payloads, cleans HTML content, and deduplicates
+      to retain only the most recent version of each item.
+    columns:
+      - name: id
+        description: >
+          Hacker News item ID. Primary key uniquely identifying each
+          job posting comment.
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+
+      - name: author
+        description: >
+          Hacker News username of the person who posted the job listing.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: posted_at
+        description: >
+          Timestamp when the job posting was originally submitted to
+          Hacker News. Converted from Unix epoch to UTC timestamp.
+        data_type: timestamp with time zone
+        tests:
+          - not_null
+
+      - name: text
+        description: >
+          Job posting content with HTML tags stripped and entities decoded.
+          Contains the full job description as plain text.
+        data_type: varchar
+        tests:
+          - not_null
+
+      - name: parent_id
+        description: >
+          Hacker News item ID of the parent thread. For job postings,
+          this references the monthly "Who is Hiring?" story.
+        data_type: integer
+
+      - name: load_id
+        description: >
+          UUID identifying the ingestion batch that captured this record.
+          Used for lineage tracking and debugging ingestion issues.
+        data_type: uuid
+
+      - name: ingested_at
+        description: >
+          Timestamp when the record was written to the Bronze layer.
+          Used for deduplication ordering (latest wins).
+        data_type: timestamp with time zone

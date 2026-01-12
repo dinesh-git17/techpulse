@@ -1,0 +1,36 @@
+version: 2
+
+sources:
+  - name: hacker_news
+    description: >
+      Bronze layer containing raw Hacker News API responses ingested from
+      the "Who is Hiring?" monthly threads. Data is append-only with potential
+      duplicates across ingestion batches.
+    schema: main
+    freshness:
+      warn_after:
+        count: 35
+        period: day
+    loaded_at_field: ingested_at
+    tables:
+      - name: raw_hn_items
+        description: >
+          Raw Hacker News item payloads stored as JSON. Each row represents
+          a single API response captured during ingestion. Multiple versions
+          of the same item may exist due to re-ingestion.
+        columns:
+          - name: load_id
+            description: >
+              Unique identifier for the ingestion batch. All items ingested
+              in a single pipeline run share the same load_id.
+            data_type: uuid
+          - name: ingested_at
+            description: >
+              Timestamp when the row was written to the Bronze layer.
+              Used for deduplication (latest wins) and freshness checks.
+            data_type: timestamptz
+          - name: payload
+            description: >
+              Raw JSON response from the Hacker News Firebase API.
+              Contains fields: id, by, time, text, type, parent, etc.
+            data_type: json
