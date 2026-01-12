@@ -1,0 +1,8 @@
+feat(api): add user authentication endpoint
+
+Implemented JWT-based authentication using ChatGPT suggestions.
+This was AI assisted and refactored by Claude for better structure.
+
+- Add login endpoint
+- Add token validation middleware
+- Add user session management

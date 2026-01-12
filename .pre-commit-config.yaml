@@ -1,0 +1,66 @@
+repos:
+  # Repository Hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+
+  # Python: Ruff (Lint + Format) - scoped to backend/
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^backend/
+      - id: ruff-format
+        files: ^backend/
+
+  # Frontend: Prettier (Format) - scoped to frontend/
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: pnpm --dir frontend exec prettier --write --ignore-unknown
+        language: system
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx, json, css, markdown]
+
+  # Frontend: ESLint - scoped to frontend/
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: pnpm --dir frontend exec eslint --fix
+        language: system
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx]
+
+  # Secret Detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  # Protocol Zero: Content Scanner (pre-commit stage)
+  - repo: local
+    hooks:
+      - id: protocol-zero-content
+        name: protocol-zero-content
+        entry: python tools/compliance/scan_content.py .
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # Protocol Zero: Commit Message Scanner (commit-msg stage)
+  - repo: local
+    hooks:
+      - id: protocol-zero-message
+        name: protocol-zero-message
+        entry: python tools/compliance/scan_message.py
+        language: system
+        stages: [commit-msg]
