@@ -5,6 +5,8 @@ setup:
 	uv sync
 	@echo "Installing Frontend dependencies..."
 	cd frontend && pnpm install
+	@echo "Installing pre-commit hooks..."
+	uv run pre-commit install --hook-type pre-commit --hook-type commit-msg
 
 dev:
 	@echo "Starting Full Stack (use Ctrl+C to stop)..."
