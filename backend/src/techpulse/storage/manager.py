@@ -187,11 +187,17 @@ class DuckDBManager:
             Self: The manager instance with an active database connection.
 
         Raises:
-            StorageConnectionError: If the connection cannot be established.
+            StorageConnectionError: If the connection cannot be established
+                or schema initialization fails.
         """
         self._ensure_parent_directory_exists()
         self._connection = self._connect_with_retry()
-        initialize_schema(self._connection)
+        try:
+            initialize_schema(self._connection)
+        except Exception:
+            self._connection.close()
+            self._connection = None
+            raise
         self._log.debug("database_connection_established")
         return self
 
