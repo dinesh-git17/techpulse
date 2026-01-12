@@ -1,4 +1,4 @@
-name: 'dbt_project'
+name: 'techpulse'
 version: '1.0.0'
 
 profile: 'techpulse'
