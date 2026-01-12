@@ -1,0 +1,13 @@
+name: 'dbt_project'
+version: '1.0.0'
+
+profile: 'techpulse'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"

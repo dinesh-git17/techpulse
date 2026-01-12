@@ -1,0 +1,7 @@
+techpulse:
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'techpulse.duckdb') }}"
+      threads: 4
+  target: dev
