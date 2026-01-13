@@ -40,6 +40,7 @@ v1_router = APIRouter(prefix="/api/v1")
 # These imports must occur after v1_router is defined.
 from techpulse.api.routes import technologies as _technologies_routes  # noqa: F401, E402
 from techpulse.api.routes import trends as _trends_routes  # noqa: F401, E402
+from techpulse.api.routes.health import health_router  # noqa: E402
 from techpulse.api.routes.internal import internal_router  # noqa: E402
 
 
@@ -150,6 +151,7 @@ def create_app() -> FastAPI:
 
     application.include_router(v1_router)
     application.include_router(internal_router)
+    application.include_router(health_router)
 
     application.get("/health")(_health)
 
