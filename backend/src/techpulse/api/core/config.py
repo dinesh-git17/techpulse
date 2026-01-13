@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +26,10 @@ class Settings(BaseSettings):
         api_port: Port number for the API server.
         log_format: Logging output format (json for production, console for dev).
         cors_origins: Comma-separated list of allowed CORS origins.
+        redis_url: Redis connection URL for caching (Upstash).
+        cache_ttl_seconds: Default TTL for cache entries in seconds.
+        cache_lock_timeout_seconds: Lock expiry timeout for stampede prevention.
+        cache_purge_api_key: API key for cache purge endpoint authentication.
     """
 
     model_config = SettingsConfigDict(
@@ -60,6 +64,30 @@ class Settings(BaseSettings):
     cors_origins: str = Field(
         default="http://localhost:3000",
         description="Comma-separated list of allowed CORS origins.",
+    )
+
+    redis_url: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("UPSTASH_REDIS_URL", "TECHPULSE_REDIS_URL"),
+        description="Redis connection URL for caching (Upstash).",
+    )
+
+    cache_ttl_seconds: int = Field(
+        default=86400,
+        ge=1,
+        description="Default TTL for cache entries in seconds.",
+    )
+
+    cache_lock_timeout_seconds: int = Field(
+        default=30,
+        ge=1,
+        le=300,
+        description="Lock expiry timeout for stampede prevention in seconds.",
+    )
+
+    cache_purge_api_key: str | None = Field(
+        default=None,
+        description="API key for cache purge endpoint authentication.",
     )
 
     def get_cors_origins_list(self) -> list[str]:

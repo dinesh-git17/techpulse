@@ -13,6 +13,11 @@ import structlog
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from techpulse.api.cache.service import (
+    close_cache_service,
+    get_cache_service,
+    init_cache_service,
+)
 from techpulse.api.core.config import get_settings
 from techpulse.api.core.logging import configure_logging
 from techpulse.api.db.manager import (
@@ -61,27 +66,31 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
         log_format=settings.log_format,
         db_path=str(settings.db_path),
         cors_origins=settings.get_cors_origins_list(),
+        redis_configured=settings.redis_url is not None,
     )
 
     init_session_manager(settings.db_path)
+    init_cache_service(settings.redis_url, settings.cache_ttl_seconds)
 
     yield
 
+    close_cache_service()
     close_session_manager()
     logger.info("application_shutdown")
 
 
 def _health() -> dict[str, Union[str, bool]]:
-    """Return API health status including database connectivity.
+    """Return API health status including database and cache connectivity.
 
-    Performs a health check on the database connection by executing
-    SELECT 1. Returns db_connected status based on the result.
+    Performs health checks on database and cache connections. Returns
+    connection status for each service.
 
     This endpoint is outside the versioned API prefix for infrastructure
     monitoring tools that expect a standard health check path.
 
     Returns:
-        Dictionary containing status, system name, and db_connected flag.
+        Dictionary containing status, system name, db_connected, and
+        cache_connected flags.
     """
     try:
         manager = get_session_manager()
@@ -89,7 +98,15 @@ def _health() -> dict[str, Union[str, bool]]:
     except DatabaseConnectionError:
         db_connected = False
 
-    return {"status": "ok", "system": "TechPulse", "db_connected": db_connected}
+    cache_service = get_cache_service()
+    cache_connected = cache_service.health_check() if cache_service else False
+
+    return {
+        "status": "ok",
+        "system": "TechPulse",
+        "db_connected": db_connected,
+        "cache_connected": cache_connected,
+    }
 
 
 def create_app() -> FastAPI:
