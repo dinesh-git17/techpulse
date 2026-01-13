@@ -13,16 +13,18 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.15",
     "@tanstack/react-query": "^5.80.6",
     "ky": "^1.8.1",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "recharts": "^3.6.0",
     "zod": "^3.25.42"
   },
   "devDependencies": {
-    "@tanstack/react-query-devtools": "^5.80.6",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query-devtools": "^5.80.6",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^25",
