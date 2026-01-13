@@ -17,9 +17,11 @@
     "@tanstack/react-query": "^5.80.6",
     "ky": "^1.8.1",
     "next": "16.1.1",
+    "nuqs": "^2.8.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.6.0",
+    "sonner": "^2.0.7",
     "zod": "^3.25.42"
   },
   "devDependencies": {
