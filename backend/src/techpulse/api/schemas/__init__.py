@@ -10,12 +10,17 @@ from techpulse.api.schemas.errors import (
     ProblemDetail,
     create_problem_detail,
 )
+from techpulse.api.schemas.technology import Technology
+from techpulse.api.schemas.trend import TechnologyTrend, TrendDataPoint
 
 __all__ = [
     "ERROR_TYPE_BASE",
     "Meta",
     "ProblemDetail",
     "ResponseEnvelope",
+    "Technology",
+    "TechnologyTrend",
+    "TrendDataPoint",
     "create_envelope",
     "create_problem_detail",
 ]
