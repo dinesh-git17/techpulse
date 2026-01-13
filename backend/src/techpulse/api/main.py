@@ -27,6 +27,8 @@ from techpulse.api.db.manager import (
 )
 from techpulse.api.exceptions.domain import DatabaseConnectionError
 from techpulse.api.exceptions.handlers import register_exception_handlers
+from techpulse.api.metrics import get_instrumentator
+from techpulse.api.middleware import CorrelationMiddleware
 
 logger = structlog.get_logger(__name__)
 
@@ -38,6 +40,7 @@ v1_router = APIRouter(prefix="/api/v1")
 # These imports must occur after v1_router is defined.
 from techpulse.api.routes import technologies as _technologies_routes  # noqa: F401, E402
 from techpulse.api.routes import trends as _trends_routes  # noqa: F401, E402
+from techpulse.api.routes.health import health_router  # noqa: E402
 from techpulse.api.routes.internal import internal_router  # noqa: E402
 
 
@@ -58,16 +61,23 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
         DatabaseConnectionError: If database connection fails during startup.
     """
     settings = get_settings()
-    configure_logging(settings.log_format)
+    effective_json_format = settings.get_effective_log_json_format()
+    configure_logging(
+        json_format=effective_json_format,
+        log_level=settings.log_level,
+    )
 
     logger.info(
         "application_startup",
+        environment=settings.environment,
+        log_level=settings.log_level,
+        log_json_format=effective_json_format,
         host=settings.api_host,
         port=settings.api_port,
-        log_format=settings.log_format,
         db_path=str(settings.db_path),
         cors_origins=settings.get_cors_origins_list(),
         redis_configured=settings.redis_url is not None,
+        metrics_enabled=True,
     )
 
     init_session_manager(settings.db_path)
@@ -77,7 +87,7 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
 
     close_cache_service()
     close_session_manager()
-    logger.info("application_shutdown")
+    logger.info("application_shutdown", message="Graceful termination complete")
 
 
 def _health() -> dict[str, Union[str, bool]]:
@@ -135,12 +145,19 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    application.add_middleware(CorrelationMiddleware)
+
     register_exception_handlers(application)
 
     application.include_router(v1_router)
     application.include_router(internal_router)
+    application.include_router(health_router)
 
     application.get("/health")(_health)
+
+    instrumentator = get_instrumentator()
+    instrumentator.instrument(application)
+    instrumentator.expose(application, include_in_schema=False)
 
     return application
 

@@ -24,7 +24,9 @@ class Settings(BaseSettings):
         db_path: Path to the DuckDB database file.
         api_host: Host address for the API server to bind to.
         api_port: Port number for the API server.
-        log_format: Logging output format (json for production, console for dev).
+        environment: Deployment environment name.
+        log_level: Minimum log level to emit.
+        log_json_format: Force JSON or colored output, auto-detects if None.
         cors_origins: Comma-separated list of allowed CORS origins.
         redis_url: Redis connection URL for caching (Upstash).
         cache_ttl_seconds: Default TTL for cache entries in seconds.
@@ -56,9 +58,20 @@ class Settings(BaseSettings):
         description="Port number for the API server.",
     )
 
-    log_format: Literal["json", "console"] = Field(
-        default="console",
-        description="Logging format: 'json' for production, 'console' for dev.",
+    environment: str = Field(
+        default="development",
+        description="Deployment environment (production, staging, development).",
+    )
+
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        default="INFO",
+        description="Minimum log level to emit.",
+    )
+
+    log_json_format: bool | None = Field(
+        default=None,
+        description="Force JSON (true) or colored (false) output. "
+        "Auto-detects based on ENVIRONMENT if not set.",
     )
 
     cors_origins: str = Field(
@@ -89,6 +102,19 @@ class Settings(BaseSettings):
         default=None,
         description="API key for cache purge endpoint authentication.",
     )
+
+    def get_effective_log_json_format(self) -> bool:
+        """Determine effective JSON format setting.
+
+        Returns JSON format if explicitly set via LOG_JSON_FORMAT, otherwise
+        auto-detects based on ENVIRONMENT value (production=JSON, else colored).
+
+        Returns:
+            True for JSON output, False for colored console output.
+        """
+        if self.log_json_format is not None:
+            return self.log_json_format
+        return self.environment == "production"
 
     def get_cors_origins_list(self) -> list[str]:
         """Parse comma-separated CORS origins into a list.
