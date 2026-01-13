@@ -4,6 +4,7 @@ import pytest
 
 from techpulse.api.exceptions.domain import (
     APIError,
+    CacheConnectionError,
     DatabaseConnectionError,
     DataValidationError,
     QueryExecutionError,
@@ -147,12 +148,48 @@ class TestDataValidationError:
             raise DataValidationError(model_name="Model", reason="error")
 
 
+class TestCacheConnectionError:
+    """Test suite for CacheConnectionError exception."""
+
+    def test_inherits_from_api_error(self) -> None:
+        """Verify CacheConnectionError inherits from APIError."""
+        assert issubclass(CacheConnectionError, APIError)
+
+    def test_stores_reason_attribute(self) -> None:
+        """Verify reason attribute is stored."""
+        error = CacheConnectionError(reason="connection refused")
+        assert error.reason == "connection refused"
+
+    def test_stores_operation_attribute(self) -> None:
+        """Verify operation attribute is stored."""
+        error = CacheConnectionError(reason="timeout", operation="get")
+        assert error.operation == "get"
+
+    def test_default_operation_is_connect(self) -> None:
+        """Verify default operation is 'connect'."""
+        error = CacheConnectionError(reason="test")
+        assert error.operation == "connect"
+
+    def test_formats_message_correctly(self) -> None:
+        """Verify error message includes operation and reason."""
+        error = CacheConnectionError(reason="timeout", operation="set")
+        assert "set" in str(error)
+        assert "timeout" in str(error)
+        assert "Cache" in str(error)
+
+    def test_can_be_caught_as_api_error(self) -> None:
+        """Verify can be caught using APIError handler."""
+        with pytest.raises(APIError):
+            raise CacheConnectionError(reason="error")
+
+
 class TestExceptionHierarchy:
     """Test suite for the overall exception hierarchy."""
 
     def test_all_exceptions_inherit_from_api_error(self) -> None:
         """Verify all domain exceptions inherit from APIError."""
         exceptions = [
+            CacheConnectionError,
             DatabaseConnectionError,
             RecordNotFoundError,
             QueryExecutionError,
@@ -165,6 +202,7 @@ class TestExceptionHierarchy:
         """Verify all domain exceptions are proper Exceptions."""
         exceptions = [
             APIError,
+            CacheConnectionError,
             DatabaseConnectionError,
             RecordNotFoundError,
             QueryExecutionError,

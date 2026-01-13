@@ -19,12 +19,22 @@ class TestHealthEndpoint:
     def test_health_response_structure(self) -> None:
         """Verify health endpoint returns expected keys."""
         result = health()
-        assert set(result.keys()) == {"status", "system", "db_connected"}
+        assert set(result.keys()) == {
+            "status",
+            "system",
+            "db_connected",
+            "cache_connected",
+        }
 
     def test_health_db_connected_is_boolean(self) -> None:
         """Verify db_connected field is a boolean."""
         result = health()
         assert isinstance(result["db_connected"], bool)
+
+    def test_health_cache_connected_is_boolean(self) -> None:
+        """Verify cache_connected field is a boolean."""
+        result = health()
+        assert isinstance(result["cache_connected"], bool)
 
 
 class TestAppConfiguration:

@@ -104,3 +104,27 @@ class DataValidationError(APIError):
         self.model_name = model_name
         self.reason = reason
         super().__init__(f"Data validation failed for {model_name}: {reason}")
+
+
+class CacheConnectionError(APIError):
+    """Raised when cache connection cannot be established or operation fails.
+
+    This includes failures to connect to Redis, timeouts, and operation
+    errors. The cache layer implements fail-open behavior, so this exception
+    is typically logged rather than propagated to callers.
+
+    Attributes:
+        reason: A descriptive explanation of the cache failure.
+        operation: The cache operation that failed (connect, get, set, delete).
+    """
+
+    def __init__(self, reason: str, operation: str = "connect") -> None:
+        """Initialize the cache connection error with reason and operation.
+
+        Args:
+            reason: A human-readable description of why the operation failed.
+            operation: The cache operation that failed.
+        """
+        self.reason = reason
+        self.operation = operation
+        super().__init__(f"Cache {operation} failed: {reason}")
