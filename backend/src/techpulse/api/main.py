@@ -25,7 +25,14 @@ from techpulse.api.exceptions.handlers import register_exception_handlers
 
 logger = structlog.get_logger(__name__)
 
+# Route modules are imported after v1_router definition to register endpoints
+
 v1_router = APIRouter(prefix="/api/v1")
+
+# Import route modules to register endpoints with v1_router.
+# These imports must occur after v1_router is defined.
+from techpulse.api.routes import technologies as _technologies_routes  # noqa: F401, E402
+from techpulse.api.routes import trends as _trends_routes  # noqa: F401, E402
 
 
 @asynccontextmanager
