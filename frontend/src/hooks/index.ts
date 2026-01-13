@@ -11,3 +11,7 @@ export type {
   UseDashboardParamsOptions,
   UseDashboardParamsReturn,
 } from "./useDashboardParams";
+
+export { useUrlValidation } from "./useUrlValidation";
+
+export type { UseUrlValidationOptions } from "./useUrlValidation";

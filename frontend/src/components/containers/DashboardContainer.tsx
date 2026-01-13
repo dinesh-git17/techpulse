@@ -24,8 +24,12 @@ import {
   type TechnologyOption,
 } from "@/components/ui";
 import { useTechnologies, useTrends } from "@/features/trends/queries";
-import { useDashboardParams } from "@/hooks";
-import { serializeTechIds } from "@/lib/url";
+import { useDashboardParams, useUrlValidation } from "@/hooks";
+import {
+  parseTechIdsString,
+  serializeTechIds,
+  type RawDashboardParams,
+} from "@/lib/url";
 
 /**
  * Color palette for chart series (colorblind-friendly).
@@ -149,6 +153,43 @@ export function DashboardContainer(): ReactNode {
     isLoading: isTechLoading,
     error: techError,
   } = useTechnologies();
+
+  const knownTechIds = useMemo(() => {
+    if (!technologiesData?.data) {
+      return new Set<string>();
+    }
+    return new Set(technologiesData.data.map((tech) => tech.key));
+  }, [technologiesData]);
+
+  const rawParams: RawDashboardParams = useMemo(
+    () => ({
+      tech_ids: serializeTechIds(selectedTechs),
+      start: dateRange.startDate,
+      end: dateRange.endDate,
+    }),
+    [selectedTechs, dateRange],
+  );
+
+  const handleCorrection = useCallback(
+    (correctedParams: RawDashboardParams) => {
+      const correctedTechs = parseTechIdsString(correctedParams.tech_ids);
+      setTechs(correctedTechs);
+      if (correctedParams.start && correctedParams.end) {
+        setDateRange({
+          startDate: correctedParams.start,
+          endDate: correctedParams.end,
+        });
+      }
+    },
+    [setTechs, setDateRange],
+  );
+
+  useUrlValidation({
+    rawParams,
+    knownTechIds,
+    onCorrect: handleCorrection,
+    enabled: !isTechLoading && knownTechIds.size > 0,
+  });
 
   const techIdsString = serializeTechIds(selectedTechs);
 
