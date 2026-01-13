@@ -12,6 +12,7 @@ import duckdb
 from fastapi import Depends, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
+from techpulse.api.cache import cached
 from techpulse.api.dao.trend import TrendDAO
 from techpulse.api.db.manager import get_db_cursor
 from techpulse.api.main import v1_router
@@ -236,6 +237,9 @@ def validate_date_range(start: date, end: date) -> None:
         )
 
 
+TRENDS_CACHE_TTL_SECONDS = 600
+
+
 @v1_router.get(
     "/trends",
     response_model=ResponseEnvelope[list[TechnologyTrend]],
@@ -256,6 +260,11 @@ def validate_date_range(start: date, end: date) -> None:
             },
         }
     },
+)
+@cached(
+    endpoint="trends",
+    key_params=["tech_ids_parsed", "start_date", "end_date"],
+    ttl=TRENDS_CACHE_TTL_SECONDS,
 )
 def get_trends(
     tech_ids_parsed: Annotated[list[str], Depends(parse_tech_ids)],
