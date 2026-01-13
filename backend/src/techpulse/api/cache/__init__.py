@@ -8,8 +8,10 @@ Components:
     - CacheService: Redis client with fail-open get/set/delete operations
     - CacheKeyBuilder: Deterministic cache key generation with normalization
     - CacheSerializer: Fast JSON serialization using orjson
+    - cached: Decorator for cache-aside pattern with stampede prevention
 """
 
+from techpulse.api.cache.decorator import CacheLockAcquisitionError, cached
 from techpulse.api.cache.keys import CacheKeyBuilder
 from techpulse.api.cache.serializer import CacheSerializationError, CacheSerializer
 from techpulse.api.cache.service import (
@@ -21,9 +23,11 @@ from techpulse.api.cache.service import (
 
 __all__ = [
     "CacheKeyBuilder",
+    "CacheLockAcquisitionError",
     "CacheSerializationError",
     "CacheSerializer",
     "CacheService",
+    "cached",
     "close_cache_service",
     "get_cache_service",
     "init_cache_service",
