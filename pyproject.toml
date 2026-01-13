@@ -16,6 +16,7 @@ dependencies = [
     "httpx>=0.28.0",
     "pandas>=2.3.3",
     "pydantic>=2.12.5",
+    "pydantic-settings>=2.7.0",
     "structlog>=25.1.0",
     "tenacity>=9.0.0",
     "uvicorn>=0.40.0",
