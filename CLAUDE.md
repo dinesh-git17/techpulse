@@ -175,6 +175,25 @@ Claude MUST use **TSDoc** (JSDoc style) for all exported symbols.
 - **File Structure:** One component per file.
 - **Naming:** PascalCase for components (`TrendCard.tsx`), camelCase for utilities (`formatDate.ts`).
 
+### 7.4 Design & UI Standards (MANDATORY)
+
+Claude MUST read and apply the frontend design skill before generating any UI code.
+
+- **Skill Location:** `.claude/skills/frontend-design/SKILL.md`
+- **Activation:** ANY task involving React components, layouts, styling, or visual UI elements.
+- **Pre-Implementation:** Claude MUST define typography, color architecture, and aesthetic direction BEFORE writing code.
+
+**Anti-AI-Slop Prohibitions:**
+
+| Category   | Forbidden                                       | Required                                                                     |
+| ---------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| Typography | Inter, Roboto, Arial, system fonts              | Distinctive pairings (Playfair Display, Bricolage Grotesque, JetBrains Mono) |
+| Colors     | Purple-blue gradients, generic indigo-500       | CSS custom properties with semantic naming                                   |
+| Layout     | Generic SaaS template patterns, symmetric grids | Asymmetric balance, intentional negative space                               |
+| Motion     | Decorative animations                           | Purpose-driven with `prefers-reduced-motion` support                         |
+
+**Quality Gate:** UI code is INCOMPLETE if it uses prohibited defaults without explicit user override.
+
 ---
 
 ## 8. CI Pipeline & Local Validation
@@ -183,11 +202,11 @@ All code changes are validated by the Aegis CI pipeline before merge. Claude MUS
 
 ### 8.1 Pipeline Structure
 
-| Workflow | Purpose | Blocking |
-|----------|---------|----------|
-| `Compliance` | Protocol Zero scan, secret detection | Yes |
-| `Backend` | Format, lint, type check, tests, Dagster, dbt | Yes |
-| `Frontend` | Format, lint, type check, build | Yes |
+| Workflow     | Purpose                                       | Blocking |
+| ------------ | --------------------------------------------- | -------- |
+| `Compliance` | Protocol Zero scan, secret detection          | Yes      |
+| `Backend`    | Format, lint, type check, tests, Dagster, dbt | Yes      |
+| `Frontend`   | Format, lint, type check, build               | Yes      |
 
 ### 8.2 Local Validation Commands
 
