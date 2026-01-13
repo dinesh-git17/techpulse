@@ -3,3 +3,11 @@ export {
   TABLET_BREAKPOINT,
   useMediaQuery,
 } from "./useMediaQuery";
+
+export { useDashboardParams } from "./useDashboardParams";
+
+export type {
+  DateRange,
+  UseDashboardParamsOptions,
+  UseDashboardParamsReturn,
+} from "./useDashboardParams";
