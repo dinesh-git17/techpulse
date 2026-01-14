@@ -1,75 +1,286 @@
 @import "tailwindcss";
 
+/**
+ * TechPulse Design System — Color & Alpha Architecture
+ *
+ * Naming convention: --tp-color-{category}-{variant}
+ * Alpha support: Colors defined as RGB channels for <alpha-value> syntax
+ * Theme: Dark mode implemented, light mode structured but inactive
+ */
+
 :root {
-  /* Background hierarchy */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f1f3f4;
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * PRIMITIVE PALETTE — Raw color values as RGB channels
+   * These are NOT consumed directly; semantic tokens reference these.
+   * ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* Text hierarchy */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  /* Brand — Cyan/Teal spectrum (#0EA5E9 family) */
+  --tp-primitive-brand-50: 240 249 255;
+  --tp-primitive-brand-100: 224 242 254;
+  --tp-primitive-brand-200: 186 230 253;
+  --tp-primitive-brand-300: 125 211 252;
+  --tp-primitive-brand-400: 56 189 248;
+  --tp-primitive-brand-500: 14 165 233;
+  --tp-primitive-brand-600: 2 132 199;
+  --tp-primitive-brand-700: 3 105 161;
+  --tp-primitive-brand-800: 7 89 133;
+  --tp-primitive-brand-900: 12 74 110;
+  --tp-primitive-brand-950: 8 47 73;
 
-  /* Border system */
-  --border-default: #e2e8f0;
-  --border-muted: #f1f5f9;
+  /* Neutral — Slate spectrum for UI chrome */
+  --tp-primitive-neutral-50: 248 250 252;
+  --tp-primitive-neutral-100: 241 245 249;
+  --tp-primitive-neutral-200: 226 232 240;
+  --tp-primitive-neutral-300: 203 213 225;
+  --tp-primitive-neutral-400: 148 163 184;
+  --tp-primitive-neutral-500: 100 116 139;
+  --tp-primitive-neutral-600: 71 85 105;
+  --tp-primitive-neutral-700: 51 65 85;
+  --tp-primitive-neutral-800: 30 41 59;
+  --tp-primitive-neutral-900: 15 23 42;
+  --tp-primitive-neutral-950: 2 6 23;
 
-  /* Accent colors */
-  --accent-primary: #2563eb;
-  --accent-success: #059669;
-  --accent-warning: #d97706;
-  --accent-danger: #dc2626;
+  /* Semantic Status — Success (Green) */
+  --tp-primitive-success-400: 74 222 128;
+  --tp-primitive-success-500: 34 197 94;
+  --tp-primitive-success-600: 22 163 74;
 
-  /* Legacy aliases for compatibility */
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
+  /* Semantic Status — Warning (Amber) */
+  --tp-primitive-warning-400: 251 191 36;
+  --tp-primitive-warning-500: 245 158 11;
+  --tp-primitive-warning-600: 217 119 6;
+
+  /* Semantic Status — Danger (Red) */
+  --tp-primitive-danger-400: 248 113 113;
+  --tp-primitive-danger-500: 239 68 68;
+  --tp-primitive-danger-600: 220 38 38;
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * LIGHT MODE SEMANTIC TOKENS (Structured, inactive by default)
+   * Activate by removing dark mode media query override
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Surface hierarchy — Light */
+  --tp-color-surface-primary: var(--tp-primitive-neutral-50);
+  --tp-color-surface-secondary: var(--tp-primitive-neutral-100);
+  --tp-color-surface-tertiary: var(--tp-primitive-neutral-200);
+  --tp-color-surface-elevated: 255 255 255;
+  --tp-color-surface-sunken: var(--tp-primitive-neutral-200);
+
+  /* Text hierarchy — Light */
+  --tp-color-text-primary: var(--tp-primitive-neutral-900);
+  --tp-color-text-secondary: var(--tp-primitive-neutral-600);
+  --tp-color-text-muted: var(--tp-primitive-neutral-500);
+  --tp-color-text-inverted: var(--tp-primitive-neutral-50);
+
+  /* Border hierarchy — Light */
+  --tp-color-border-default: var(--tp-primitive-neutral-200);
+  --tp-color-border-muted: var(--tp-primitive-neutral-100);
+  --tp-color-border-strong: var(--tp-primitive-neutral-300);
+
+  /* Action colors — Light */
+  --tp-color-action-primary: var(--tp-primitive-brand-500);
+  --tp-color-action-primary-hover: var(--tp-primitive-brand-600);
+  --tp-color-action-primary-active: var(--tp-primitive-brand-700);
+
+  /* Status colors — Light */
+  --tp-color-status-success: var(--tp-primitive-success-600);
+  --tp-color-status-success-muted: var(--tp-primitive-success-500);
+  --tp-color-status-warning: var(--tp-primitive-warning-600);
+  --tp-color-status-warning-muted: var(--tp-primitive-warning-500);
+  --tp-color-status-danger: var(--tp-primitive-danger-600);
+  --tp-color-status-danger-muted: var(--tp-primitive-danger-500);
+
+  /* Interactive states — Light */
+  --tp-color-focus-ring: var(--tp-primitive-brand-500);
+  --tp-color-highlight: var(--tp-primitive-brand-100);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* ═══════════════════════════════════════════════════════════════════════════
+ * DARK MODE SEMANTIC TOKENS (Active implementation)
+ * ═══════════════════════════════════════════════════════════════════════════ */
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Background hierarchy - dark */
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-tertiary: #21262d;
+    /* Surface hierarchy — Dark cockpit aesthetic */
+    --tp-color-surface-primary: 13 17 23;
+    --tp-color-surface-secondary: 22 27 34;
+    --tp-color-surface-tertiary: 33 38 45;
+    --tp-color-surface-elevated: 36 41 51;
+    --tp-color-surface-sunken: 1 4 9;
 
-    /* Text hierarchy - dark */
-    --text-primary: #e6edf3;
-    --text-secondary: #8b949e;
-    --text-muted: #6e7681;
+    /* Text hierarchy — High readability on dark */
+    --tp-color-text-primary: 230 237 243;
+    --tp-color-text-secondary: 139 148 158;
+    --tp-color-text-muted: 110 118 129;
+    --tp-color-text-inverted: var(--tp-primitive-neutral-900);
 
-    /* Border system - dark */
-    --border-default: #30363d;
-    --border-muted: #21262d;
+    /* Border hierarchy — Subtle definition on dark */
+    --tp-color-border-default: 48 54 61;
+    --tp-color-border-muted: 33 38 45;
+    --tp-color-border-strong: 68 76 86;
 
-    /* Accent colors - dark */
-    --accent-primary: #58a6ff;
-    --accent-success: #3fb950;
-    --accent-warning: #d29922;
-    --accent-danger: #f85149;
+    /* Glass border — Shimmer effect for glass panels */
+    --tp-color-border-glass: 255 255 255;
 
-    /* Legacy aliases */
-    --background: var(--bg-primary);
-    --foreground: var(--text-primary);
+    /* Action colors — Luminescent cyan on dark */
+    --tp-color-action-primary: var(--tp-primitive-brand-400);
+    --tp-color-action-primary-hover: var(--tp-primitive-brand-300);
+    --tp-color-action-primary-active: var(--tp-primitive-brand-500);
+
+    /* Status colors — Elevated luminosity for dark */
+    --tp-color-status-success: var(--tp-primitive-success-400);
+    --tp-color-status-success-muted: var(--tp-primitive-success-500);
+    --tp-color-status-warning: var(--tp-primitive-warning-400);
+    --tp-color-status-warning-muted: var(--tp-primitive-warning-500);
+    --tp-color-status-danger: var(--tp-primitive-danger-400);
+    --tp-color-status-danger-muted: var(--tp-primitive-danger-500);
+
+    /* Interactive states — Dark mode optimized */
+    --tp-color-focus-ring: var(--tp-primitive-brand-400);
+    --tp-color-highlight: var(--tp-primitive-brand-950);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* Force dark mode for initial release (override system preference) */
+:root {
+  color-scheme: dark;
+
+  /* Surface hierarchy — Dark cockpit aesthetic */
+  --tp-color-surface-primary: 13 17 23;
+  --tp-color-surface-secondary: 22 27 34;
+  --tp-color-surface-tertiary: 33 38 45;
+  --tp-color-surface-elevated: 36 41 51;
+  --tp-color-surface-sunken: 1 4 9;
+
+  /* Text hierarchy — High readability on dark */
+  --tp-color-text-primary: 230 237 243;
+  --tp-color-text-secondary: 139 148 158;
+  --tp-color-text-muted: 110 118 129;
+  --tp-color-text-inverted: var(--tp-primitive-neutral-900);
+
+  /* Border hierarchy — Subtle definition on dark */
+  --tp-color-border-default: 48 54 61;
+  --tp-color-border-muted: 33 38 45;
+  --tp-color-border-strong: 68 76 86;
+
+  /* Glass border — Shimmer effect for glass panels */
+  --tp-color-border-glass: 255 255 255;
+
+  /* Action colors — Luminescent cyan on dark */
+  --tp-color-action-primary: var(--tp-primitive-brand-400);
+  --tp-color-action-primary-hover: var(--tp-primitive-brand-300);
+  --tp-color-action-primary-active: var(--tp-primitive-brand-500);
+
+  /* Status colors — Elevated luminosity for dark */
+  --tp-color-status-success: var(--tp-primitive-success-400);
+  --tp-color-status-success-muted: var(--tp-primitive-success-500);
+  --tp-color-status-warning: var(--tp-primitive-warning-400);
+  --tp-color-status-warning-muted: var(--tp-primitive-warning-500);
+  --tp-color-status-danger: var(--tp-primitive-danger-400);
+  --tp-color-status-danger-muted: var(--tp-primitive-danger-500);
+
+  /* Interactive states — Dark mode optimized */
+  --tp-color-focus-ring: var(--tp-primitive-brand-400);
+  --tp-color-highlight: var(--tp-primitive-brand-950);
 }
 
-/**
- * Skeleton loading animation.
- * 1.5s ease-in-out infinite pulse between opacity 0.4 and 1.0.
- */
+/* ═══════════════════════════════════════════════════════════════════════════
+ * TAILWIND THEME INTEGRATION
+ * Maps CSS variables to Tailwind utilities with alpha-value support
+ * Usage: bg-surface-primary, text-primary, border-default, bg-surface-primary/50
+ * ═══════════════════════════════════════════════════════════════════════════ */
+@theme inline {
+  /* Font stacks */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Surface colors — Backgrounds */
+  --color-surface-primary: rgb(var(--tp-color-surface-primary) / <alpha-value>);
+  --color-surface-secondary: rgb(
+    var(--tp-color-surface-secondary) / <alpha-value>
+  );
+  --color-surface-tertiary: rgb(
+    var(--tp-color-surface-tertiary) / <alpha-value>
+  );
+  --color-surface-elevated: rgb(
+    var(--tp-color-surface-elevated) / <alpha-value>
+  );
+  --color-surface-sunken: rgb(var(--tp-color-surface-sunken) / <alpha-value>);
+
+  /* Text colors */
+  --color-text-primary: rgb(var(--tp-color-text-primary) / <alpha-value>);
+  --color-text-secondary: rgb(var(--tp-color-text-secondary) / <alpha-value>);
+  --color-text-muted: rgb(var(--tp-color-text-muted) / <alpha-value>);
+  --color-text-inverted: rgb(var(--tp-color-text-inverted) / <alpha-value>);
+
+  /* Border colors */
+  --color-border-default: rgb(var(--tp-color-border-default) / <alpha-value>);
+  --color-border-muted: rgb(var(--tp-color-border-muted) / <alpha-value>);
+  --color-border-strong: rgb(var(--tp-color-border-strong) / <alpha-value>);
+  --color-border-glass: rgb(var(--tp-color-border-glass) / <alpha-value>);
+
+  /* Action colors */
+  --color-action-primary: rgb(var(--tp-color-action-primary) / <alpha-value>);
+  --color-action-primary-hover: rgb(
+    var(--tp-color-action-primary-hover) / <alpha-value>
+  );
+  --color-action-primary-active: rgb(
+    var(--tp-color-action-primary-active) / <alpha-value>
+  );
+
+  /* Status colors */
+  --color-status-success: rgb(var(--tp-color-status-success) / <alpha-value>);
+  --color-status-success-muted: rgb(
+    var(--tp-color-status-success-muted) / <alpha-value>
+  );
+  --color-status-warning: rgb(var(--tp-color-status-warning) / <alpha-value>);
+  --color-status-warning-muted: rgb(
+    var(--tp-color-status-warning-muted) / <alpha-value>
+  );
+  --color-status-danger: rgb(var(--tp-color-status-danger) / <alpha-value>);
+  --color-status-danger-muted: rgb(
+    var(--tp-color-status-danger-muted) / <alpha-value>
+  );
+
+  /* Interactive states */
+  --color-focus-ring: rgb(var(--tp-color-focus-ring) / <alpha-value>);
+  --color-highlight: rgb(var(--tp-color-highlight) / <alpha-value>);
+
+  /* Brand primitives — Exposed for direct access when needed */
+  --color-brand-50: rgb(var(--tp-primitive-brand-50) / <alpha-value>);
+  --color-brand-100: rgb(var(--tp-primitive-brand-100) / <alpha-value>);
+  --color-brand-200: rgb(var(--tp-primitive-brand-200) / <alpha-value>);
+  --color-brand-300: rgb(var(--tp-primitive-brand-300) / <alpha-value>);
+  --color-brand-400: rgb(var(--tp-primitive-brand-400) / <alpha-value>);
+  --color-brand-500: rgb(var(--tp-primitive-brand-500) / <alpha-value>);
+  --color-brand-600: rgb(var(--tp-primitive-brand-600) / <alpha-value>);
+  --color-brand-700: rgb(var(--tp-primitive-brand-700) / <alpha-value>);
+  --color-brand-800: rgb(var(--tp-primitive-brand-800) / <alpha-value>);
+  --color-brand-900: rgb(var(--tp-primitive-brand-900) / <alpha-value>);
+  --color-brand-950: rgb(var(--tp-primitive-brand-950) / <alpha-value>);
+
+  /* Legacy compatibility aliases */
+  --color-background: rgb(var(--tp-color-surface-primary) / <alpha-value>);
+  --color-foreground: rgb(var(--tp-color-text-primary) / <alpha-value>);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * BASE STYLES
+ * ═══════════════════════════════════════════════════════════════════════════ */
+body {
+  background: rgb(var(--tp-color-surface-primary));
+  color: rgb(var(--tp-color-text-primary));
+}
+
+/* Focus visible — Consistent focus ring across interactive elements */
+:focus-visible {
+  outline: 2px solid rgb(var(--tp-color-focus-ring));
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * UTILITY ANIMATIONS
+ * ═══════════════════════════════════════════════════════════════════════════ */
 @keyframes skeleton-pulse {
   0%,
   100% {
