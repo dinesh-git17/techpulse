@@ -11,9 +11,11 @@
  * shareable dashboard configurations.
  */
 
-import { type ReactNode, useCallback, useMemo } from "react";
+import { type ReactNode, Suspense, useCallback, useMemo } from "react";
 
+import { ChartErrorBoundary } from "@/components/boundaries/ChartErrorBoundary";
 import { DashboardShell } from "@/components/layouts";
+import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
 import {
   DateRangePicker,
   TechnologySelector,
@@ -288,14 +290,18 @@ export function DashboardContainer(): ReactNode {
         </p>
       </div>
 
-      <TrendChart
-        data={chartData}
-        series={seriesConfig}
-        isLoading={isTrendsLoading && selectedTechs.length > 0}
-        error={chartError}
-        isEmpty={chartIsEmpty && !isTrendsLoading}
-        onRetry={handleRetry}
-      />
+      <ChartErrorBoundary>
+        <Suspense fallback={<ChartSkeleton />}>
+          <TrendChart
+            data={chartData}
+            series={seriesConfig}
+            isLoading={isTrendsLoading && selectedTechs.length > 0}
+            error={chartError}
+            isEmpty={chartIsEmpty && !isTrendsLoading}
+            onRetry={handleRetry}
+          />
+        </Suspense>
+      </ChartErrorBoundary>
     </div>
   );
 
