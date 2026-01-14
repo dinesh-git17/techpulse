@@ -19,3 +19,11 @@ export type { UseUrlValidationOptions } from "./useUrlValidation";
 export { useScale, CINEMA_VIEWBOX, CINEMA_VIEWBOX_STRING } from "./useScale";
 
 export type { ScaleFunctions, UseScaleResult } from "./useScale";
+
+export { useDirector, MIN_SCENE_DURATION_MS } from "./useDirector";
+
+export type {
+  DirectorPhase,
+  UseDirectorOptions,
+  UseDirectorResult,
+} from "./useDirector";
