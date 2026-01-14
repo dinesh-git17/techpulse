@@ -190,9 +190,49 @@
  * Usage: bg-surface-primary, text-primary, border-default, bg-surface-primary/50
  * ═══════════════════════════════════════════════════════════════════════════ */
 @theme inline {
+  /* ─────────────────────────────────────────────────────────────────────────
+   * TYPOGRAPHY — "Data Dense" Type Scale
+   * Optimized for analytical dashboards with micro sizes for dense data tables.
+   * Line heights tuned for scanning numerical data.
+   * ───────────────────────────────────────────────────────────────────────── */
+
   /* Font stacks */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Type scale with data-optimized line heights */
+  --text-micro-xs: 0.6875rem;
+  --text-micro-xs--line-height: 1rem;
+
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.125rem;
+
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
 
   /* Surface colors — Backgrounds */
   --color-surface-primary: rgb(var(--tp-color-surface-primary) / <alpha-value>);
@@ -262,6 +302,29 @@
   /* Legacy compatibility aliases */
   --color-background: rgb(var(--tp-color-surface-primary) / <alpha-value>);
   --color-foreground: rgb(var(--tp-color-text-primary) / <alpha-value>);
+
+  /* ─────────────────────────────────────────────────────────────────────────
+   * Z-INDEX & ELEVATION — Strict Semantic Scale
+   * Exactly 6 named layers. Arbitrary z-indices are prohibited.
+   * Tooltips bypass this stack via portals.
+   * ───────────────────────────────────────────────────────────────────────── */
+
+  /* Disable default Tailwind z-index utilities */
+  --z-0: initial;
+  --z-10: initial;
+  --z-20: initial;
+  --z-30: initial;
+  --z-40: initial;
+  --z-50: initial;
+  --z-auto: initial;
+
+  /* Semantic z-index scale */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-modal: 300;
+  --z-toast: 400;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -272,11 +335,58 @@ body {
   color: rgb(var(--tp-color-text-primary));
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * TYPOGRAPHY — Font Feature Settings
+ * Tabular numbers (tnum): Fixed-width digits for aligned columns
+ * Slashed zero (zero): Distinguishes 0 from O
+ * Stylistic set 01 (ss01): Disambiguates 1/l/I in supported fonts
+ * ───────────────────────────────────────────────────────────────────────── */
+html {
+  font-feature-settings:
+    "tnum" on,
+    "zero" on,
+    "ss01" on;
+}
+
+/* Explicit tabular figures for elements that commonly display numbers */
+.font-mono,
+[class*="font-mono"],
+code,
+pre,
+kbd,
+samp,
+table,
+th,
+td,
+time,
+[data-numeric] {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
 /* Focus visible — Consistent focus ring across interactive elements */
 :focus-visible {
   outline: 2px solid rgb(var(--tp-color-focus-ring));
   outline-offset: 2px;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * STACKING CONTEXT UTILITIES
+ * Use `.stacking-context` to create isolated stacking contexts that prevent
+ * z-index conflicts between unrelated components.
+ * ───────────────────────────────────────────────────────────────────────── */
+.stacking-context {
+  isolation: isolate;
+}
+
+/*
+ * Portal Strategy for Tooltips:
+ * Tooltips render via React portals directly into document.body,
+ * bypassing the main stacking context. Use z-index: 9999 inline
+ * for tooltip portal containers only.
+ *
+ * Example:
+ * createPortal(<Tooltip style={{ zIndex: 9999 }} />, document.body)
+ */
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * UTILITY ANIMATIONS
