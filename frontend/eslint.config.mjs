@@ -4,6 +4,8 @@ import nextTs from "eslint-config-next/typescript";
 import prettier from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
 
+import techpulsePlugin from "./eslint-plugins/techpulse/index.js";
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -15,9 +17,13 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "next-env.d.ts",
     "storybook-static/**",
+    "eslint-plugins/**",
   ]),
 
   {
+    plugins: {
+      techpulse: techpulsePlugin,
+    },
     settings: {
       "import/resolver": {
         typescript: {
@@ -28,6 +34,8 @@ const eslintConfig = defineConfig([
     },
     rules: {
       "no-console": "warn",
+
+      "techpulse/no-nested-glass": "warn",
 
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unused-vars": [

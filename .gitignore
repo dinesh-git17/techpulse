@@ -12,6 +12,7 @@ build/
 node_modules/
 .next/
 out/
+storybook-static/
 
 # dbt
 target/
