@@ -27,3 +27,10 @@ export type {
   UseDirectorOptions,
   UseDirectorResult,
 } from "./useDirector";
+
+export { useSceneTimer } from "./useSceneTimer";
+
+export type {
+  UseSceneTimerOptions,
+  UseSceneTimerResult,
+} from "./useSceneTimer";

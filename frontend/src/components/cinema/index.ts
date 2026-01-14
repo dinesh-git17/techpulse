@@ -9,6 +9,10 @@ export { CinemaStage, type CinemaStageProps } from "./CinemaStage";
 
 export { TrendLine, SPRING_CONFIG, type TrendLineProps } from "./TrendLine";
 
+export { Annotation, type AnnotationProps } from "./Annotation";
+
+export { AnnotationLayer, type AnnotationLayerProps } from "./AnnotationLayer";
+
 export type {
   NormalizedPoint,
   TrendPath,
