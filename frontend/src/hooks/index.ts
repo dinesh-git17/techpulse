@@ -34,3 +34,8 @@ export type {
   UseSceneTimerOptions,
   UseSceneTimerResult,
 } from "./useSceneTimer";
+
+export {
+  usePrefersReducedMotion,
+  REDUCED_MOTION_QUERY,
+} from "./usePrefersReducedMotion";
