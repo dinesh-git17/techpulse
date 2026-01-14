@@ -15,3 +15,7 @@ export type {
 export { useUrlValidation } from "./useUrlValidation";
 
 export type { UseUrlValidationOptions } from "./useUrlValidation";
+
+export { useScale, CINEMA_VIEWBOX, CINEMA_VIEWBOX_STRING } from "./useScale";
+
+export type { ScaleFunctions, UseScaleResult } from "./useScale";
