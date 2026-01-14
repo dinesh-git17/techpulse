@@ -151,10 +151,7 @@ export function useUrlValidation(options: UseUrlValidationOptions): void {
 
     for (const correction of corrections) {
       const { title, description } = getCorrectionToast(correction);
-      toast.warning(title, {
-        description,
-        duration: 5000,
-      });
+      toast.info(title, { description });
     }
 
     hasProcessedRef.current = true;

@@ -14,14 +14,7 @@
 import { Suspense } from "react";
 
 import { DashboardContainer } from "@/components/containers";
-import { DataSkeleton } from "@/components/skeletons/data-skeleton";
-
-/**
- * Loading fallback for the dashboard while URL params are being parsed.
- */
-function DashboardFallback() {
-  return <DataSkeleton variant="detail" />;
-}
+import { DashboardSkeleton } from "@/components/skeletons/DashboardSkeleton";
 
 /**
  * Dashboard page component.
@@ -40,7 +33,7 @@ function DashboardFallback() {
  */
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<DashboardFallback />}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <DashboardContainer />
     </Suspense>
   );
