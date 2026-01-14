@@ -4,15 +4,23 @@
  * Documents the TechPulse glass utility primitives with visual demonstrations,
  * tier comparisons, noise texture, and accessibility fallback states.
  */
+import { useState } from "react";
+
 import type { Meta, StoryObj } from "@storybook/react";
 
 import {
+  A11Y_MEDIA_QUERIES,
+  FORCED_COLORS,
   GLASS_CLASS_NAMES,
+  GLASS_CONTRAST_RATIOS,
   GLASS_TIERS,
+  type GlassContrastRatio,
+  type GlassTier,
   MAX_GLASS_NESTING_DEPTH,
   NOISE_TEXTURE,
+  REDUCED_TRANSPARENCY_FALLBACKS,
   SHIMMER_BORDER,
-  type GlassTier,
+  WCAG_CONTRAST_THRESHOLDS,
 } from "../../styles/glassTokens";
 
 interface GlassTierCardProps {
@@ -243,6 +251,284 @@ function NestingDemo() {
 }
 
 /**
+ * Contrast ratio badge component.
+ */
+function ContrastBadge({ ratio }: { ratio: GlassContrastRatio }) {
+  const getStatusColor = () => {
+    if (ratio.meetsAAA) return "bg-status-success/20 text-status-success";
+    if (ratio.meetsAA) return "bg-status-warning/20 text-status-warning";
+    return "bg-status-danger/20 text-status-danger";
+  };
+
+  const getLabel = () => {
+    if (ratio.meetsAAA) return "AAA";
+    if (ratio.meetsAA) return "AA";
+    return "Fail";
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded text-micro font-medium ${getStatusColor()}`}
+    >
+      {getLabel()} ({ratio.ratio}:1)
+    </span>
+  );
+}
+
+/**
+ * Demonstrates contrast ratios for text on glass surfaces.
+ */
+function ContrastRatiosDemo() {
+  const tiers = ["subtle", "panel", "overlay"] as const;
+  const textTokens = ["text-primary", "text-secondary", "text-muted"] as const;
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-sm font-medium text-text-primary">
+          Contrast Ratios (WCAG Compliance)
+        </h4>
+        <p className="text-micro text-text-muted mt-1">
+          Pre-calculated contrast ratios for text on glass surfaces. WCAG AA
+          requires 4.5:1 for normal text, 3:1 for large text.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-border-default">
+              <th className="text-left py-2 px-3 text-text-secondary font-medium">
+                Glass Tier
+              </th>
+              {textTokens.map((token) => (
+                <th
+                  key={token}
+                  className="text-left py-2 px-3 text-text-secondary font-medium"
+                >
+                  <code className="text-micro font-mono">{token}</code>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {tiers.map((tier) => (
+              <tr key={tier} className="border-b border-border-muted">
+                <td className="py-2 px-3">
+                  <code className="text-action-primary font-mono text-micro">
+                    .glass-{tier}
+                  </code>
+                </td>
+                {textTokens.map((token) => {
+                  const ratio = GLASS_CONTRAST_RATIOS.find(
+                    (r) => r.tier === tier && r.textToken === token,
+                  );
+                  return (
+                    <td key={token} className="py-2 px-3">
+                      {ratio && <ContrastBadge ratio={ratio} />}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-micro">
+        <div className="p-2 bg-status-success/10 rounded border border-status-success/20">
+          <span className="font-medium text-status-success">AAA</span>
+          <span className="text-text-secondary ml-1">
+            ≥{WCAG_CONTRAST_THRESHOLDS.AAA_NORMAL}:1 (enhanced)
+          </span>
+        </div>
+        <div className="p-2 bg-status-warning/10 rounded border border-status-warning/20">
+          <span className="font-medium text-status-warning">AA</span>
+          <span className="text-text-secondary ml-1">
+            ≥{WCAG_CONTRAST_THRESHOLDS.AA_NORMAL}:1 (minimum)
+          </span>
+        </div>
+        <div className="p-2 bg-status-danger/10 rounded border border-status-danger/20">
+          <span className="font-medium text-status-danger">Fail</span>
+          <span className="text-text-secondary ml-1">
+            &lt;{WCAG_CONTRAST_THRESHOLDS.AA_NORMAL}:1 (non-compliant)
+          </span>
+        </div>
+      </div>
+
+      <div className="p-3 bg-surface-tertiary rounded-lg text-micro text-text-secondary">
+        <strong className="text-text-primary">Recommendation:</strong> Use{" "}
+        <code className="text-action-primary">text-primary</code> for all body
+        text on glass surfaces. Reserve{" "}
+        <code className="text-action-primary">text-secondary</code> for
+        supplementary labels on subtle/panel tiers only.
+      </div>
+    </div>
+  );
+}
+
+type A11yMode = "standard" | "reduced-transparency" | "forced-colors";
+
+/**
+ * Demonstrates accessibility fallback states with interactive toggles.
+ */
+function A11yFallbackDemo() {
+  const [mode, setMode] = useState<A11yMode>("standard");
+
+  const getModeStyles = (tier: "subtle" | "panel" | "overlay") => {
+    if (mode === "reduced-transparency") {
+      const fallback =
+        REDUCED_TRANSPARENCY_FALLBACKS[
+          tier as keyof typeof REDUCED_TRANSPARENCY_FALLBACKS
+        ];
+      return {
+        background: `rgb(var(${fallback}))`,
+        backdropFilter: "none",
+        border:
+          tier !== "subtle"
+            ? "1px solid rgb(var(--tp-color-border-default))"
+            : "none",
+      };
+    }
+    if (mode === "forced-colors") {
+      return {
+        background: FORCED_COLORS.background,
+        backdropFilter: "none",
+        border: `1px solid ${FORCED_COLORS.border}`,
+        color: FORCED_COLORS.text,
+      };
+    }
+    return undefined;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-sm font-medium text-text-primary">
+          Accessibility Fallback States
+        </h4>
+        <p className="text-micro text-text-muted mt-1">
+          Toggle between rendering modes to preview how glass surfaces degrade
+          for users with accessibility preferences.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            { value: "standard", label: "Standard" },
+            { value: "reduced-transparency", label: "Reduced Transparency" },
+            { value: "forced-colors", label: "Forced Colors (High Contrast)" },
+          ] as const
+        ).map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setMode(value)}
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              mode === value
+                ? "bg-action-primary text-text-inverted"
+                : "bg-surface-tertiary text-text-secondary hover:bg-surface-elevated"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative rounded-xl overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              mode === "forced-colors"
+                ? FORCED_COLORS.background
+                : "linear-gradient(135deg, rgb(var(--tp-primitive-brand-600)) 0%, rgb(var(--tp-primitive-brand-950)) 100%)",
+          }}
+        />
+
+        <div className="relative p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(["subtle", "panel", "overlay"] as const).map((tier) => {
+            const glassClass = `glass-${tier}`;
+            const styles = getModeStyles(tier);
+
+            return (
+              <div
+                key={tier}
+                className={`rounded-xl p-4 min-h-32 ${mode === "standard" ? glassClass : ""}`}
+                style={styles}
+              >
+                <div className="relative z-10">
+                  <h5
+                    className="font-semibold mb-1"
+                    style={
+                      mode === "forced-colors"
+                        ? { color: FORCED_COLORS.text }
+                        : undefined
+                    }
+                  >
+                    {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                  </h5>
+                  <p
+                    className="text-micro"
+                    style={
+                      mode === "forced-colors"
+                        ? { color: FORCED_COLORS.text }
+                        : undefined
+                    }
+                  >
+                    {mode === "standard" && "Glass effect active"}
+                    {mode === "reduced-transparency" && "Solid background"}
+                    {mode === "forced-colors" && "System colors"}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-micro">
+        <div className="p-3 bg-surface-secondary rounded-lg border border-border-default">
+          <h5 className="font-medium text-text-primary mb-1">
+            Reduced Transparency
+          </h5>
+          <p className="text-text-secondary mb-2">
+            Triggered by{" "}
+            <code className="text-action-primary">
+              @media ({A11Y_MEDIA_QUERIES.reducedTransparency})
+            </code>
+          </p>
+          <ul className="text-text-muted space-y-1">
+            <li>• Removes backdrop-filter blur</li>
+            <li>• Replaces with solid semantic surfaces</li>
+            <li>• Hides noise texture pseudo-elements</li>
+          </ul>
+        </div>
+        <div className="p-3 bg-surface-secondary rounded-lg border border-border-default">
+          <h5 className="font-medium text-text-primary mb-1">
+            Forced Colors (Windows High Contrast)
+          </h5>
+          <p className="text-text-secondary mb-2">
+            Triggered by{" "}
+            <code className="text-action-primary">
+              @media ({A11Y_MEDIA_QUERIES.forcedColors})
+            </code>
+          </p>
+          <ul className="text-text-muted space-y-1">
+            <li>
+              • Uses CSS system colors ({FORCED_COLORS.background},{" "}
+              {FORCED_COLORS.text})
+            </li>
+            <li>• Adds visible borders for edge definition</li>
+            <li>• Adapts to user&apos;s chosen theme</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Complete glass tokens documentation story.
  */
 function GlassTokensStory() {
@@ -296,6 +582,33 @@ function GlassTokensStory() {
       <ShimmerBorderDemo />
 
       <NestingDemo />
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-text-primary">
+            Accessibility
+          </h2>
+          <p className="text-sm text-text-secondary mt-1">
+            Glass surfaces gracefully degrade for users with accessibility
+            preferences. Toggle between modes to preview fallback states.
+          </p>
+        </div>
+        <A11yFallbackDemo />
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-text-primary">
+            Contrast Compliance
+          </h2>
+          <p className="text-sm text-text-secondary mt-1">
+            Text on glass surfaces must meet WCAG AA contrast requirements. Use
+            text-primary for body text; reserve muted colors for non-critical
+            labels.
+          </p>
+        </div>
+        <ContrastRatiosDemo />
+      </section>
 
       <section className="space-y-4">
         <div>

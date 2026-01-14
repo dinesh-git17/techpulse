@@ -529,3 +529,31 @@ time,
     display: none;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * ACCESSIBILITY FALLBACKS — Forced Colors (Windows High Contrast)
+ *
+ * Users with forced-colors enabled (Windows High Contrast Mode) get
+ * system colors instead of glass effects. This ensures usability by
+ * respecting the user's contrast preferences.
+ * ───────────────────────────────────────────────────────────────────────── */
+@media (forced-colors: active) {
+  .glass-subtle,
+  .glass-panel,
+  .glass-overlay {
+    background: Canvas;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid CanvasText;
+  }
+
+  .glass-panel::before,
+  .glass-overlay::before,
+  .glass-noise::before {
+    display: none;
+  }
+
+  .border-shimmer {
+    border: 1px solid CanvasText;
+  }
+}
