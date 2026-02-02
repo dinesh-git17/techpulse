@@ -46,8 +46,8 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^8.53.0",
-    "@typescript-eslint/parser": "^8.53.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.17",
     "eslint": "^9",
@@ -62,7 +62,7 @@
     "storybook": "^10.2.0",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "typescript-eslint": "^8.53.0",
+    "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.17"
   }
 }
